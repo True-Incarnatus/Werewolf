@@ -66,11 +66,15 @@ public class WerewolfGame{
     public static Entity pickImposter(){
         iniToll();
         for(int i=0;i<SIZE;i++){
+            if(players[i].isAlive)
             players[i].vote();
         }
         int max=-1;
         int maxPos=0;
         for(int i=0;i<SIZE;i++){
+            if(!players[i].isAlive){
+                continue;
+            }
             if(toll[i]>max){
                 max=toll[i];
                 maxPos=i;
@@ -449,8 +453,9 @@ public class WerewolfGame{
             this.signal=true;
             if(suspended.get(0).JSstate && suspended.get(0).getRep()>160){
                 this.heal();
+                return true;
             }
-            return true;
+            return false;
         }
         public void die(){
             SocerersLeft--;
@@ -460,6 +465,7 @@ public class WerewolfGame{
     static class Hunter extends Entity{
         public Hunter(String s){
             super(s);
+            this.ident="Hunter";
         }
         public String randShoot(){
             int minImpres=1000;
@@ -476,7 +482,7 @@ public class WerewolfGame{
         }
         public void die(){
             SocerersLeft--;
-            this.randShoot();
+            System.out.println(this.name+" the "+this.ident+" killed "+this.randShoot()+" with his gun.");
             this.isAlive=!this.isAlive;
         }
     }
@@ -545,16 +551,8 @@ public class WerewolfGame{
             }
             int pos=Integer.max(Integer.max(randInt(blanks,impres.length),randInt(blanks,impres.length)),randInt(blanks,impres.length));
             
-            String[] ret=new String[2];
-            ret[0]=players[pos].name;
-            boolean flag=this.reveal(pos);
-            if(flag){
-                ret[1]="Human";
-            }
-            else{
-                ret[1]="Werewolf";
-            }
-            return ret;
+            this.reveal(pos);
+            return players[pos];
         }
 
         public void die(){
@@ -578,10 +576,17 @@ public class WerewolfGame{
         System.out.println("--------Night "+SOL+"--------");
         isNight=true;
         if(prophet.isAlive){
-            String[] stash=prophet.randReveal();
-            System.out.println("The prophet revealed identity of "+stash[0]+", who is a "+stash[1]);
+            Entity stash=prophet.randReveal();
+            System.out.print("The prophet revealed identity of "+stash.name+", who is a ");
+            if(stash.ident=="Werewolf"){
+                System.out.println("Werewolf.");
+            }
+            else{
+                System.out.println("Human.");
+            }
         }
         System.out.println("Werewolves attempted to kill"+Werewolf.kill());
+        if(witch.isAlive){
         if(witch.randHeal()){
             System.out.println("The witch used healing potion.");
         }
@@ -601,6 +606,7 @@ public class WerewolfGame{
                 System.out.println("The witch poisoned"+tempstr);
             }
         }
+    }   
     }
     public static void doDay(){
         SOL++;
